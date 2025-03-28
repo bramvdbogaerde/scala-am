@@ -175,6 +175,7 @@ object Main {
             val sem = new ASchemeSemanticsWithVisitorAndOptimization[alattice.L, address.A, time.T, ContextSensitiveTID](new SchemePrimitives[address.A, alattice.L], visitor)
             val N = 1
             val warmup = if (N > 1) 2 else 0 // 2 runs that are ignored to warm up
+            assert(config.file.isDefined, "AScheme: --file needed for analysis")
             val (states, times) = (1 to N+warmup).map(i =>
               runOnFile(config.file.get, program => run(machine, sem)(program, config.dotfile, config.jsonfile, config.timeout.map(_.toNanos), config.inspect))).unzip
             // println("States: " + states.mkString(", "))
