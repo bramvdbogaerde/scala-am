@@ -51,6 +51,8 @@ abstract class AbstractMachine[Exp : Expression, Abs : JoinLattice, Addr : Addre
     def toFile(path: String)(output: GraphOutput): Unit
   }
 
+  type Result <: Output
+
   /**
    * Evaluates a program, given a semantics. If @param graph is true, the state
    * graph will be computed and stored in the output. Returns an object
@@ -58,7 +60,7 @@ abstract class AbstractMachine[Exp : Expression, Abs : JoinLattice, Addr : Addre
    * evaluation. @param timeout is the timeout in ns, when reached, the
    * evaluation stops and the currently computed results are returned.
    */
-  def eval(exp: Exp, sem: Semantics[Exp, Abs, Addr, Time], graph: Boolean = false, timeout: Timeout = Timeout.start(None)): Output
+  def eval(exp: Exp, sem: Semantics[Exp, Abs, Addr, Time], graph: Boolean = false, timeout: Timeout = Timeout.start(None)): Result
 }
 
 /**

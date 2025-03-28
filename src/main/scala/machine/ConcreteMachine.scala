@@ -27,11 +27,13 @@ class ConcreteMachine[Exp : Expression, Abs : JoinLattice, Addr : Address, Time 
     def timedOut = false
   }
 
+  type Result = ConcreteMachineOutput
+
   /**
    * Performs the evaluation of an expression, possibly writing the output graph
    * in a file, and returns the set of final states reached
    */
-  def eval(exp: Exp, sem: Semantics[Exp, Abs, Addr, Time], graph: Boolean, timeout: Timeout): Output = {
+  def eval(exp: Exp, sem: Semantics[Exp, Abs, Addr, Time], graph: Boolean, timeout: Timeout): Result = {
     def loop(control: Control, store: Store[Addr, Abs], stack: List[Frame], t: Time, count: Int): ConcreteMachineOutput = {
       if (timeout.reached) {
         ConcreteMachineOutputTimeout(store, timeout.time, count)

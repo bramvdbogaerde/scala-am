@@ -119,7 +119,9 @@ class AAMAACP4F[Exp : Expression, Abs : JoinLattice, Addr : Address, Time : Time
     }
   }
 
-  def eval(exp: Exp, sem: Semantics[Exp, Abs, Addr, Time], genGraph: Boolean, timeout: Timeout): Output = {
+  type Result = AAMAACP4FOutput
+
+  def eval(exp: Exp, sem: Semantics[Exp, Abs, Addr, Time], genGraph: Boolean, timeout: Timeout): Result = {
     @scala.annotation.tailrec
     def loop(todo: Set[State], visited: Set[State], store: GlobalStore, kstore: KontStore[KontAddr],
       halted: Set[State], graph: G, reallyVisited: Set[State]): AAMAACP4FOutput =

@@ -395,6 +395,10 @@ class ActorsAAMGlobalStore[Exp : Expression, Abs : IsASchemeLattice, Addr : Addr
         GlobalStore.initial(store))
   }
 
+
+  // TODO: make a superclass for this, and do overrides if necessary so that in testing
+  // we can polymorphically read the results from both the regular actorsAAM and the
+  // global store version
   case class ActorsAAMOutput(halted: Set[State], numberOfStates: Int, time: Double, graph: Option[G], timedOut: Boolean, bounds: Map[PID, MboxSize])
       extends Output {
     def finalValues: Set[Abs] = halted.flatMap(st => st.procs.get(ThreadIdentifier[PID].initial).flatMap(ctx => ctx.control match {
@@ -408,7 +412,9 @@ class ActorsAAMGlobalStore[Exp : Expression, Abs : IsASchemeLattice, Addr : Addr
     }
   }
 
-  def eval(exp: Exp, sem: Semantics[Exp, Abs, Addr, Time], graph: Boolean, timeout: Timeout): Output = {
+  type Result = ActorsAAMOutput
+
+  def eval(exp: Exp, sem: Semantics[Exp, Abs, Addr, Time], graph: Boolean, timeout: Timeout): Result = {
     val startingTime = System.nanoTime
     def id(g: Option[G], s: State): Int = g.map(_.nodeId(s)).getOrElse(-1)
     var bounds = Map[PID, MboxSize]().withDefaultValue(MboxSizeN(0))

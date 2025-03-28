@@ -79,15 +79,21 @@ object Main {
   /** Run a machine on a program with the given semantics. If @param output is
     * set, generate a dot graph visualizing the computed graph in the given
     * file. Return the number of states and time taken. */
-  def run[Exp : Expression, Abs : JoinLattice, Addr : Address, Time : Timestamp](machine: AbstractMachine[Exp, Abs, Addr, Time], sem: Semantics[Exp, Abs, Addr, Time])(program: String, outputDot: Option[String], outputJSON: Option[String], timeout: Option[Long], inspect: Boolean): (Int, Double) = {
+  def runOutput[Exp : Expression, Abs : JoinLattice, Addr : Address, Time : Timestamp](machine: AbstractMachine[Exp, Abs, Addr, Time], sem: Semantics[Exp, Abs, Addr, Time])(program: String, outputDot: Option[String], outputJSON: Option[String], timeout: Option[Long], inspect: Boolean): machine.Output = {
     println(s"Running ${machine.name} with lattice ${JoinLattice[Abs].name} and address ${Address[Addr].name}")
     val result = machine.eval(sem.parse(program), sem, !outputDot.isEmpty || !outputJSON.isEmpty, Timeout.start(timeout))
     outputDot.foreach(result.toFile(_)(GraphDOTOutput))
     outputJSON.foreach(result.toFile(_)(GraphJSONOutput))
     if (result.timedOut) println(s"${scala.io.AnsiColor.RED}Timeout was reached${scala.io.AnsiColor.RESET}")
     println(s"Visited ${result.numberOfStates} states in ${result.time} seconds, ${result.finalValues.size} possible results: ${result.finalValues}")
-    (result.numberOfStates, result.time)
+    result
   }
+
+  
+  def run[Exp : Expression, Abs : JoinLattice, Addr : Address, Time : Timestamp](machine: AbstractMachine[Exp, Abs, Addr, Time], sem: Semantics[Exp, Abs, Addr, Time])(program: String, outputDot: Option[String], outputJSON: Option[String], timeout: Option[Long], inspect: Boolean): (Int, Double) = {
+      val result = runOutput(machine, sem)(program, outputDot, outputJSON, timeout, inspect)
+      (result.numberOfStates, result.time)
+    }
 
   def main(args: Array[String]) {
     import scala.util.control.Breaks._
@@ -176,8 +182,9 @@ object Main {
             val N = 1
             val warmup = if (N > 1) 2 else 0 // 2 runs that are ignored to warm up
             assert(config.file.isDefined, "AScheme: --file needed for analysis")
-            val (states, times) = (1 to N+warmup).map(i =>
-              runOnFile(config.file.get, program => run(machine, sem)(program, config.dotfile, config.jsonfile, config.timeout.map(_.toNanos), config.inspect))).unzip
+            val outputs = (1 to N+warmup).map(i =>
+              runOnFile(config.file.get, program => runOutput(machine, sem)(program, config.dotfile, config.jsonfile, config.timeout.map(_.toNanos), config.inspect)))
+            // println(outputs.head.bounds)
             // println("States: " + states.mkString(", "))
             // println("Time: " + times.drop(warmup).mkString(","))
             if (N == 1) visitor.print

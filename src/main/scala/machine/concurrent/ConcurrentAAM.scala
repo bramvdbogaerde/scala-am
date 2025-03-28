@@ -383,7 +383,9 @@ class ConcurrentAAM[Exp : Expression, Abs : JoinLattice, Addr : Address, Time : 
     }
   }
 
-  def eval(exp: Exp, sem: Semantics[Exp, Abs, Addr, Time], graph: Boolean, timeout: Timeout): Output = {
+  type Result = ConcurrentAAMOutput
+
+  def eval(exp: Exp, sem: Semantics[Exp, Abs, Addr, Time], graph: Boolean, timeout: Timeout): Result = {
     val state = State.inject(exp, sem.initialEnv, sem.initialStore)
     val g = if (graph) { Some (Graph.empty) } else { None }
     exploration match {
