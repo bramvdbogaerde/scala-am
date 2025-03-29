@@ -79,7 +79,7 @@ object Main {
   /** Run a machine on a program with the given semantics. If @param output is
     * set, generate a dot graph visualizing the computed graph in the given
     * file. Return the number of states and time taken. */
-  def runOutput[Exp : Expression, Abs : JoinLattice, Addr : Address, Time : Timestamp](machine: AbstractMachine[Exp, Abs, Addr, Time], sem: Semantics[Exp, Abs, Addr, Time])(program: String, outputDot: Option[String], outputJSON: Option[String], timeout: Option[Long], inspect: Boolean): machine.Output = {
+  def runOutput[Exp : Expression, Abs : JoinLattice, Addr : Address, Time : Timestamp](machine: AbstractMachine[Exp, Abs, Addr, Time], sem: Semantics[Exp, Abs, Addr, Time])(program: String, outputDot: Option[String], outputJSON: Option[String], timeout: Option[Long], inspect: Boolean): machine.Result = {
     println(s"Running ${machine.name} with lattice ${JoinLattice[Abs].name} and address ${Address[Addr].name}")
     val result = machine.eval(sem.parse(program), sem, !outputDot.isEmpty || !outputJSON.isEmpty, Timeout.start(timeout))
     outputDot.foreach(result.toFile(_)(GraphDOTOutput))
@@ -171,8 +171,8 @@ object Main {
               case Config.Mbox.Graph => new GraphMboxImpl[ContextSensitiveTID, alattice.L]
             }
 
-            val machine = config.machine match {
-              case Config.Machine.AAM => new ActorsAAM[SchemeExp, alattice.L, address.A, time.T, ContextSensitiveTID](mbox)
+            val machine: ActorsAAMGlobalStore[SchemeExp, alattice.L, address.A, time.T, ContextSensitiveTID] = config.machine match {
+              // case Config.Machine.AAM => new ActorsAAM[SchemeExp, alattice.L, address.A, time.T, ContextSensitiveTID](mbox)
               case Config.Machine.AAMGlobalStore => new ActorsAAMGlobalStore[SchemeExp, alattice.L, address.A, time.T, ContextSensitiveTID](mbox)
               case _ => throw new Exception(s"unsupported machine for AScheme: ${config.machine}")
             }
@@ -184,7 +184,7 @@ object Main {
             assert(config.file.isDefined, "AScheme: --file needed for analysis")
             val outputs = (1 to N+warmup).map(i =>
               runOnFile(config.file.get, program => runOutput(machine, sem)(program, config.dotfile, config.jsonfile, config.timeout.map(_.toNanos), config.inspect)))
-            // println(outputs.head.bounds)
+            println(outputs.head.bounds)
             // println("States: " + states.mkString(", "))
             // println("Time: " + times.drop(warmup).mkString(","))
             if (N == 1) visitor.print
