@@ -138,7 +138,8 @@ class ActorsAAMGlobalStore[Exp : Expression, Abs : IsASchemeLattice, Addr : Addr
     /** Returns: the new context (or None if it terminated), the processes created,
       * an optinoal effect, an optional message sent, and the updated global store */
     def integrate(p: PID, act: Act, store: GlobalStore):
-        (MacrostepState, GlobalStore) = act match {
+        (MacrostepState, GlobalStore) = {
+          act match {
       case ActionReachedValue(v, store2, effs) =>
         ((Some(this.copy(control = ControlKont(v), t = Timestamp[Time].tick(t))),
           CreatedActors.empty, ActorEffect.empty, None, None),
@@ -148,10 +149,11 @@ class ActorsAAMGlobalStore[Exp : Expression, Abs : IsASchemeLattice, Addr : Addr
         ((Some(this.copy(control = ControlEval(e, env), kont = next, t = Timestamp[Time].tick(t))),
           CreatedActors.empty, ActorEffect.empty, None, None),
           store.includeDelta(store2.delta).push(next, Kont(frame, kont)))
-      case ActionEval(e, env, store2, effs) =>
+      case ActionEval(e, env, store2, effs) => {
         ((Some(this.copy(control = ControlEval(e, env), t = Timestamp[Time].tick(t))),
           CreatedActors.empty, ActorEffect.empty, None, None),
           store.includeDelta(store2.delta))
+      }
       case ActionStepIn(fexp, clo, e, env, store2, argsv, effs) =>
         ((Some(this.copy(control = ControlEval(e, env), t = Timestamp[Time].tick(t, fexp))),
           CreatedActors.empty, ActorEffect.empty, None, None),
@@ -176,6 +178,7 @@ class ActorsAAMGlobalStore[Exp : Expression, Abs : IsASchemeLattice, Addr : Addr
         ((Some(this.copy(control = ControlKont(vres), t = ActorTimestamp[Time].messageSent(t, ptarget, name, msg))),
           CreatedActors.empty, ActorEffect.send(ptarget, name, msg), Some((ptarget, name, msg)), None),
           store)
+        }
     }
     def step(p: PID, sem: Semantics[Exp, Abs, Addr, Time], store: GlobalStore):
         (Set[MacrostepState], GlobalStore) = {

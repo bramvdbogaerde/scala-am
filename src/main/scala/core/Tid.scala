@@ -14,6 +14,8 @@ object ContextSensitiveTID {
   object Initial extends ContextSensitiveTID {
     override def toString = "main"
   }
+
+  case class TID2[Exp: Expression](exp: Exp) extends ContextSensitiveTID
   case class TID[Exp : Expression, Time : Timestamp](exp: Exp, t: Time) extends ContextSensitiveTID {
     override def  toString = if (false && Timestamp[Time].name == "Concrete") {
       t.toString
@@ -25,6 +27,9 @@ object ContextSensitiveTID {
   implicit object CSTIDThreadIdentifier extends ThreadIdentifier[ContextSensitiveTID] {
     def name = "ContextSensitive"
     def initial = Initial
-    def thread[Exp : Expression, Time : Timestamp](exp: Exp, time: Time) = TID(exp, time)
+    def thread[Exp : Expression, Time : Timestamp](exp: Exp, time: Time) = {
+      println(s"TIME: $time")
+      TID(exp, time)
+      }
   }
 }
